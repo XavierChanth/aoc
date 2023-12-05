@@ -12,8 +12,8 @@ func Q1(input []string) (res int, err error) {
 	res = 0
 
 	for _, line := range input {
-		i := 0  
-    
+		i := 0
+
     for i < len(line) {
 			isDigit, num := getDigit(line[i])
       if(isDigit) {
@@ -22,7 +22,7 @@ func Q1(input []string) (res int, err error) {
       }
 			i+=1
 		}
-    
+
     i = len(line)-1
     for i >= 0 {
       isDigit, num := getDigit(line[i])
@@ -43,7 +43,7 @@ func Q2(input []string) (res int, err error) {
   words := [...]string {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 
   for _, line := range input {
-    i := 0  
+    i := 0
 
     outer:
     for i < len(line) {
