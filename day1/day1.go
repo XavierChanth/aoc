@@ -59,12 +59,12 @@ func Q2(input []string) (res int, err error) {
           break outer
         }
       }
-      
+
       i+=1
     }
 
     i = len(line)-1
-    
+
     outer2:
     for i >= 0 {
       isDigit, num := getDigit(line[i])
@@ -72,14 +72,14 @@ func Q2(input []string) (res int, err error) {
         res += num
         break
       }
-      
+
       for pos, word := range words {
         if(i+len(word) <= len(line) && line[i:i+len(word)] == word) {
           res += pos+1
           break outer2
         }
       }
-     
+
       i-=1
     }
 

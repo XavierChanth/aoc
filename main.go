@@ -11,7 +11,7 @@ func main() {
   if err != nil {
     fmt.Println(err)
   }
-  res, err := d.Q1(lines)
+  res, err := d.Q2(lines)
   if err != nil {
     fmt.Println(err)
   }
