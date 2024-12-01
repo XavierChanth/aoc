@@ -24,8 +24,6 @@ fn dist_vecs(a: Vec<i32>, b: Vec<i32>) -> i32 {
 }
 
 fn q1() {
-    // a1 - b1 + a2 - b2 = a1 - b2 + a2 - b1
-    // i.e. you don't actually need to sort the list
     let contents = read_file();
     let (mut left, mut right): (Vec<_>, Vec<_>) = contents
         .split_whitespace()
