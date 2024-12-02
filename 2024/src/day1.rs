@@ -2,7 +2,7 @@ use std::fs::read_to_string;
 
 use itertools::{Either, Itertools};
 
-pub fn day1(q: i32) {
+pub fn qs(q: i32) {
     match q {
         1 => q1(),
         2 => q2(),
