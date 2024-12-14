@@ -1,5 +1,6 @@
 mod day1;
 mod day2;
+mod day3;
 
 use std::{env::args, process::exit};
 
@@ -21,6 +22,7 @@ fn main() {
     match day {
         1 => day1::qs(q),
         2 => day2::qs(q),
+        3 => day3::qs(q),
         _ => (),
     }
 }
