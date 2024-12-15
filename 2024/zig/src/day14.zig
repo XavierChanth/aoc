@@ -19,22 +19,64 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const alloc = gpa.allocator();
 
-    var robots = try read_data(alloc);
-    defer robots.deinit();
+    const robots = try read_data(alloc);
+    defer alloc.free(robots);
 
+    const quadrants = sum_quadrants(robots);
+    const prod = product(&quadrants);
+
+    const res = try std.fmt.allocPrint(alloc, "Result: {d}\n", .{prod});
+    defer alloc.free(res);
+    _ = try stdout.write(res);
+}
+
+fn sum_quadrants(robots: []const Robot) [4]u32 {
     var quadrants = [_]u32{ 0, 0, 0, 0 };
-    for (robots.items) |robot| {
-        var quad: u2 = 0;
-        const x = @mod(t * robot.xv + robot.xi, width);
-        const y = @mod(t * robot.yv + robot.yi, height);
+    for (robots) |robot| {
+        var quad: u2 = 0; // 00
+        const x = @mod(t * robot.xv + robot.xp, width);
+        const y = @mod(t * robot.yv + robot.yp, height);
         if (x == x_mid or y == y_mid) continue;
         if (x > x_mid) quad += 1;
         if (y > y_mid) quad += 2;
         quadrants[quad] += 1;
     }
-    const res = try std.fmt.allocPrint(alloc, "Result: {d}\n", .{product(&quadrants)});
-    defer alloc.free(res);
-    _ = try stdout.write(res);
+    return quadrants;
+}
+
+test "sum_quadrants" {
+    const robots = [_]Robot{
+        Robot{
+            .xp = 0,
+            .yp = 0,
+            .xv = 0,
+            .yv = 0,
+        },
+        Robot{
+            .xp = 0,
+            .yp = 0,
+            .xv = 0,
+            .yv = 1,
+        },
+        Robot{
+            .xp = 0,
+            .yp = 0,
+            .xv = 1,
+            .yv = 0,
+        },
+        Robot{
+            .xp = 0,
+            .yp = 0,
+            .xv = 1,
+            .yv = 1,
+        },
+    };
+    const quadrants = sum_quadrants(&robots);
+
+    try expect(quadrants[0] == 1);
+    try expect(quadrants[1] == 1);
+    try expect(quadrants[2] == 1);
+    try expect(quadrants[3] == 1);
 }
 
 fn product(data: []const u32) u32 {
@@ -51,16 +93,17 @@ test "product" {
 }
 
 const Robot = struct {
-    xi: i16,
-    yi: i16,
+    xp: i16,
+    yp: i16,
     xv: i16,
     yv: i16,
 };
 
-fn read_data(alloc: std.mem.Allocator) !std.ArrayList(Robot) {
-    const bytes = (try read_file(alloc)).*;
+fn read_data(alloc: std.mem.Allocator) ![]Robot {
+    const bytes = (try read_file(alloc));
     defer alloc.free(bytes);
-    var lines = std.mem.split(u8, bytes, "\n");
+
+    var lines = std.mem.splitScalar(u8, bytes, '\n');
     var robots = std.ArrayList(Robot).init(alloc);
 
     while (lines.next()) |line| {
@@ -68,37 +111,39 @@ fn read_data(alloc: std.mem.Allocator) !std.ArrayList(Robot) {
         try robots.append(try parse_line(line));
     }
 
-    return robots;
+    return robots.toOwnedSlice();
 }
 
 test "read_data" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
-    var robots = read_data(alloc) catch unreachable;
+    const robots = try read_data(alloc);
     defer {
-        robots.deinit();
+        alloc.free(robots);
         _ = gpa.deinit();
     }
 
-    const robot = robots.items[0];
+    const robot = robots[0];
 
-    try expect(robot.xi == 39);
-    try expect(robot.yi == 28);
+    try expect(robot.xp == 39);
+    try expect(robot.yp == 28);
     try expect(robot.xv == 73);
     try expect(robot.yv == -88);
 }
 
-fn read_file(alloc: std.mem.Allocator) !*const []u8 {
+fn read_file(alloc: std.mem.Allocator) ![]u8 {
     const bytes = try std.fs.cwd().readFileAlloc(alloc, input_file_name, 100_000);
-    return &bytes;
+    return bytes;
 }
 
 test "read_file" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
     defer _ = gpa.deinit();
-    const bytes = (try read_file(alloc)).*;
+
+    const bytes = (try read_file(alloc));
     defer alloc.free(bytes);
+
     try expect(bytes.len > 1000);
 }
 
@@ -114,8 +159,8 @@ fn parse_line(line: []const u8) !Robot {
     const xv = try std.fmt.parseInt(i16, line[eq2 + 1 .. cm2], 10);
     const yv = try std.fmt.parseInt(i16, line[cm2 + 1 ..], 10);
     return Robot{
-        .xi = xi,
-        .yi = yi,
+        .xp = xi,
+        .yp = yi,
         .xv = xv,
         .yv = yv,
     };
@@ -123,10 +168,10 @@ fn parse_line(line: []const u8) !Robot {
 
 test "parse_line" {
     const line = "p=39,28 v=73,-88";
-    const robot = parse_line(line) catch unreachable;
+    const robot = try parse_line(line);
 
-    try expect(robot.xi == 39);
-    try expect(robot.yi == 28);
+    try expect(robot.xp == 39);
+    try expect(robot.yp == 28);
     try expect(robot.xv == 73);
     try expect(robot.yv == -88);
 }
